@@ -2,9 +2,12 @@ package io.github.hylexus.jt808.samples.customized.config;
 
 import io.github.hylexus.jt808.codec.BytesEncoder;
 import io.github.hylexus.jt808.converter.MsgTypeParser;
+import io.github.hylexus.jt808.dispatcher.RequestMsgDispatcher;
 import io.github.hylexus.jt808.ext.AuthCodeValidator;
+import io.github.hylexus.jt808.samples.customized.codec.MyDelimiterBasedFrameDecoder;
 import io.github.hylexus.jt808.samples.customized.converter.LocationUploadMsgBodyConverter2;
 import io.github.hylexus.jt808.samples.customized.handler.LocationInfoUploadMsgHandler;
+import io.github.hylexus.jt808.session.Jt808SessionManager;
 import io.github.hylexus.jt808.support.MsgHandlerMapping;
 import io.github.hylexus.jt808.support.RequestMsgBodyConverterMapping;
 import io.github.hylexus.jt808.support.netty.Jt808ChannelHandlerAdapter;
@@ -13,7 +16,11 @@ import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.socket.SocketChannel;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
+
+import static io.github.hylexus.jt.config.JtProtocolConstant.NETTY_HANDLER_NAME_808_FRAME;
 
 /**
  * @author hylexus
@@ -39,6 +46,18 @@ public class Jt808Config extends Jt808ServerConfigure {
     @Override
     public void configureSocketChannel(SocketChannel ch, Jt808ChannelHandlerAdapter jt808ChannelHandlerAdapter) {
         super.configureSocketChannel(ch, jt808ChannelHandlerAdapter);
+        ch.pipeline().replace(
+                NETTY_HANDLER_NAME_808_FRAME,
+                NETTY_HANDLER_NAME_808_FRAME,
+                new MyDelimiterBasedFrameDecoder()
+        );
+    }
+
+    @Bean
+    public Jt808ChannelHandlerAdapter jt808ChannelHandlerAdapter(
+            @Lazy RequestMsgDispatcher requestMsgDispatcher, @Lazy BytesEncoder bytesEncoder,
+            @Lazy Jt808SessionManager sessionManager) {
+        return new MyJt808ChannelHandlerAdapter(requestMsgDispatcher, this.supplyMsgTypeParser(), bytesEncoder, sessionManager);
     }
 
     // [非必须配置] -- 手动注册消息转换器
