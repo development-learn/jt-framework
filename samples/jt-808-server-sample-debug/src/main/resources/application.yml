@@ -1,0 +1,66 @@
+server:
+  port: 8808
+jt808:
+  built-components:
+    component-statistics:
+      enabled: true
+    request-handlers:
+      enabled: true
+  features:
+    request-filter:
+      enabled: true
+    program-param-printer:
+      enabled: false
+  request-sub-package-storage:
+    type: caffeine
+    caffeine:
+      maximum-size: 100
+      ttl: 3m
+  response-sub-package-storage:
+    type: caffeine
+    redis:
+      ttl: 3m
+    caffeine:
+      maximum-size: 100
+      ttl: 3m
+  ## 苏标附件服务器
+  attachment-server:
+    enabled: true
+    # 附件服务器端口(TCP)
+    port: 6809
+    boss-thread-count: 2
+    worker-thread-count: 4
+    ## 0x30316364附件上传报文的最大长度(66560 = 1024 * 65)
+    max-frame-length: 66560
+    # 处理附件相关指令(0x1210,0x1211,0x1212,0x6364)的线程池线配置
+    msg-processor:
+      executor-group:
+        max-pending-tasks: 64
+        pool-name: 808-attachment-processor
+        thread-count: 16
+
+logging:
+  level:
+    root: info
+    io.github.hylexus.jt: info
+    jt-808.channel: info
+    # 将默认解码器的日志级别调整到debug 来观察分包请求消息的解码
+    jt-808.request.decoder: info
+    # 将请求分包暂存器(默认为基于Caffeine的实现)的日志级别调整的debug 来观察分包请求的处理过程
+    io.github.hylexus.jt.jt808.support.codec.impl.CaffeineJt808RequestSubPackageStorage: debug
+    jt-808.response.encoder: info
+spring:
+  redis:
+    database: 9
+    host: localhost
+  autoconfigure:
+    exclude: org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+
+management:
+  endpoints:
+    web:
+      base-path: /actuator
+      exposure:
+        include: '*'
+        exclude:
+          - redis

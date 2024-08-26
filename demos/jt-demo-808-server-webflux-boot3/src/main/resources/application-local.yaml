@@ -1,0 +1,93 @@
+server:
+  port: 808
+
+spring:
+  jackson:
+    time-zone: Asia/Shanghai
+
+## 应用自身的配置
+## 和框架无关
+app:
+  jt808-server:
+    ## 下发 0x9208 指令时用到
+    ## 应该是一个公网IP(设备能访问的IP)
+    server-ip: node2
+    attachment:
+      temporary-path: /Users/hylexus/Desktop/jtt/1078/attachment
+
+## dashboard配置
+jt-dashboard:
+  client:
+    jt808:
+      enabled: true
+      name: ${spring.application.name}
+      base-url: http://localhost:808
+      server-url: http://localhost:9090
+      metadata:
+        role: 808-server
+
+## 808服务配置
+jt808:
+  server:
+    port: 6808
+    idle-state-handler:
+      reader-idle-time: 10m
+      #writer-idle-time: 0s
+      #all-idle-time: 0s
+      enabled: true
+  built-components:
+    component-statistics:
+      enabled: true
+    request-handlers:
+      enabled: true
+  msg-processor:
+    executor-group:
+      thread-count: 2
+      pool-name: 808-msg-processer
+      max-pending-tasks: 128
+  request-sub-package-storage:
+    type: caffeine
+    caffeine:
+      ttl: 30s
+  response-sub-package-storage:
+    type: caffeine
+    caffeine:
+      maximum-size: 30
+      ttl: 3m
+    redis:
+      ttl: 3m
+  attachment-server:
+    enabled: true
+    port: 6809
+
+logging:
+  level:
+    root: info
+    io.github.hylexus: info
+    # 将默认解码器的日志级别调整到debug 来观察分包请求消息的解码
+    jt-808.request.decoder: info
+    # 将请求分包暂存器(默认为基于Caffeine的实现)的日志级别调整的debug 来观察分包请求的处理过程
+    io.github.hylexus.jt.jt808.support.codec.impl.CaffeineJt808RequestSubPackageStorage: info
+    jt-808.response.encoder: info
+    jt-808.command-sender: info
+    io.github.hylexus.jt.jt808.support.netty.Jt808TerminalHeatBeatHandler: info
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+  endpoint:
+    health:
+      show-components: always
+    sessions:
+      enabled: true
+    jt808-simple-metrics:
+      enabled: true
+  info:
+    java:
+      enabled: true
+    os:
+      enabled: true
+    build:
+      enabled: true

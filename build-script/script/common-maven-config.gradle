@@ -1,12 +1,16 @@
 apply plugin: 'maven-publish'
 apply plugin: 'signing'
 
+def obtainJavaVersion() {
+    springBoot3Modules.contains(project.name) ? maximumJavaVersion : defaultJavaVersion
+}
+
 jar {
     manifest.attributes["Implementation-Title"] = project.name
     manifest.attributes["Implementation-Version"] = project.version
     manifest.attributes["Automatic-Module-Name"] = project.name.replace('-', '.')
-    manifest.attributes["JDK-Version"] = "${System.getProperty("java.version")}"
-    manifest.attributes["Created-By"] = "${System.getProperty("user.name")}"
+    manifest.attributes["Created-By"] = "${System.getProperty("java.version")} (${System.getProperty("java.vendor")})"
+    manifest.attributes["Minimum-Jdk-Version"] = obtainJavaVersion()
 
     from(rootProject.projectDir) {
         include "LICENSE"
@@ -30,12 +34,6 @@ task javadocJar(type: Jar) {
 
 artifacts {
     archives sourcesJar
-}
-
-install {
-    repositories.mavenInstaller {
-        customizePom(pom, project)
-    }
 }
 
 publishing {
@@ -136,51 +134,6 @@ publishing {
     }
 }
 
-project(":build-script") {
-    configurations.archives.artifacts.clear()
-}
-
-def customizePom(pom, gradleProject) {
-    pom.whenConfigured { generatedPom ->
-        generatedPom.dependencies.removeAll { dep ->
-            dep.scope == "test"
-        }
-
-        def managedVersions = dependencyManagement.managedVersions
-        generatedPom.dependencies.findAll { dep -> !dep.version }.each { dep ->
-            dep.version = managedVersions["${dep.groupId}:${dep.artifactId}"]
-        }
-
-        generatedPom.project {
-            name = gradleProject.description
-            description = gradleProject.description
-            licenses {
-                license {
-                    name = "${projectLicenseName}"
-                    url = "${projectLicenseUrl}"
-                    distribution = "${projectLicenseDistribution}"
-                }
-            }
-            scm {
-                url = "${projectScmUrl}"
-                connection = "${projectScmConnection}"
-                developerConnection = "${projectScmDeveloperConnection}"
-            }
-            developers {
-                developer {
-                    id = "${projectDeveloperId}"
-                    name = "${projectDeveloperName}"
-                    email = "${projectDeveloperEmail}"
-                }
-            }
-            issueManagement {
-                system = "${projectIssueManagementSystem}"
-                url = "${projectIssueManagementUrl}"
-            }
-        }
-    }
-}
-
 signing {
     if (!isSnapshot()) {
         sign publishing.publications.mavenJava
@@ -192,6 +145,6 @@ def isSnapshot() {
 }
 
 def static publishToMavenCentralRepo() {
-    // gradle clean build publish -Dpublish2MavenCentralRepo=true
-    System.getProperty("publish2MavenCentralRepo") ?: "false" == "true"
+    // ./gradlew clean build publish -DpublishToMavenCentralRepo=true
+    System.getProperty("publishToMavenCentralRepo") ?: "false" == "true"
 }

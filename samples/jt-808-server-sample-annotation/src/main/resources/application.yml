@@ -1,22 +1,52 @@
+
 server:
-  port: 8808
+  port: 808
 jt808:
-  print-component-statistics: true
-  entity-scan:
-    enabled: true
-    base-packages: io.github.hylexus.jt808.samples.annotation.entity.req
-    enable-builtin-entity: true
-    register-builtin-request-msg-converters: true
-  handler-scan:
-    enabled: true
-    base-packages: io.github.hylexus.jt808.samples.annotation.handler
-    register-builtin-msg-handlers: true
-  exception-handler-scan:
-    enabled: true
-    base-packages: ${jt808.handler-scan.base-packages:}
-    register-builtin-exception-handlers: true
+  server:
+    port: 6808
+    idle-state-handler:
+      reader-idle-time: 10m
+      #writer-idle-time: 0s
+      #all-idle-time: 0s
+      enabled: true
+  built-components:
+    component-statistics:
+      enabled: true
+    request-handlers:
+      enabled: true
+  msg-processor:
+    executor-group:
+      thread-count: 2
+      pool-name: 808-msg-processer
+      max-pending-tasks: 128
+  request-sub-package-storage:
+    type: caffeine
+    caffeine:
+      ttl: 30s
+  response-sub-package-storage:
+    type: caffeine
+    caffeine:
+      maximum-size: 30
+      ttl: 3m
+    redis:
+      ttl: 3m
+
 logging:
-  level: debug
-#  level.io.github.hylexus: debug
-#  level.jt-808.msg.req.decoder: debug
-#  level.jt-808.msg.req.handler.abstract-msg-handler: info
+  level:
+    root: info
+    io.github.hylexus: info
+    # 将默认解码器的日志级别调整到debug 来观察分包请求消息的解码
+    jt-808.request.decoder: debug
+    # 将请求分包暂存器(默认为基于Caffeine的实现)的日志级别调整的debug 来观察分包请求的处理过程
+    io.github.hylexus.jt.jt808.support.codec.impl.CaffeineJt808RequestSubPackageStorage: debug
+    jt-808.response.encoder: debug
+    jt-808.command-sender: debug
+    io.github.hylexus.jt.jt808.support.netty.Jt808TerminalHeatBeatHandler: debug
+
+## @see jt808.response-sub-package-storage.redis
+spring:
+  redis:
+    host: localhost
+    database: 0
+  jackson:
+    time-zone: GMT+8

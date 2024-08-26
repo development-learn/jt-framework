@@ -48,7 +48,9 @@ target
 *.iml
 
 ## Directory-based project format:
+!.idea/icon.png
 .idea/
+
 # if you remove the above rule, at least ignore the following:
 
 # User-specific stuff:
@@ -118,4 +120,11 @@ target/
 # node
 node_modules/
 # vue-press temp
-docs/pages/.vuepress/dist
+docs/src/.vuepress/dist/
+.cache
+.temp/
+
+#/dashboard/jt-dashboard-server/src/main/resources/static/client/
+
+application-debug.yaml
+/demos/deploy.sh

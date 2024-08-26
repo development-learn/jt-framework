@@ -3,22 +3,33 @@ package io.github.hylexus.jt.utils;
 import io.github.hylexus.jt.annotation.BuiltinComponent;
 import io.github.hylexus.jt.annotation.DebugOnly;
 
+import java.lang.reflect.Method;
+
 /**
  * @author hylexus
- * Created At 2019-08-28 10:07 下午
  */
 public class CommonUtils {
 
     public static boolean isBuiltinComponent(Class<?> userClass) {
         return userClass.isAnnotationPresent(BuiltinComponent.class)
-                || io.github.hylexus.jt.common.BuiltinComponent.class.isAssignableFrom(userClass);
+               || io.github.hylexus.jt.core.BuiltinComponent.class.isAssignableFrom(userClass);
     }
 
+    public static boolean isBuiltinComponent(Method method) {
+        return method.isAnnotationPresent(BuiltinComponent.class)
+               || isBuiltinComponent(method.getDeclaringClass());
+    }
 
-    public static boolean isDeprecatedClass(Class<?> userClass) {
+    public static boolean isDeprecatedComponent(Class<?> userClass) {
         return userClass.isAnnotationPresent(Deprecated.class)
-                || userClass.isAnnotationPresent(DebugOnly.class)
-                || io.github.hylexus.jt.common.DebugOnly.class.isAssignableFrom(userClass);
+               || userClass.isAnnotationPresent(DebugOnly.class)
+               || DebugOnly.class.isAssignableFrom(userClass);
+    }
+
+    public static boolean isDeprecatedComponent(Method method) {
+        return method.isAnnotationPresent(Deprecated.class)
+               || method.isAnnotationPresent(DebugOnly.class)
+               || isDeprecatedComponent(method.getDeclaringClass());
     }
 
     public static String shortClassName(Class<?> cls) {

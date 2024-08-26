@@ -1,0 +1,2 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+  io.github.hylexus.jt.jt1078.boot.configuration.Jt1078AutoConfiguration

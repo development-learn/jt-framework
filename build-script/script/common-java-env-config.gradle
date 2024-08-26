@@ -1,9 +1,50 @@
-apply plugin: 'java'
-apply plugin: 'maven'
-apply plugin: "propdeps-maven"
+apply plugin: "io.spring.dependency-management"
 
-sourceCompatibility = "${defaultJavaVersion}"
-targetCompatibility = "${defaultJavaVersion}"
+def obtainJavaVersion() {
+    springBoot3Modules.contains(project.name) ? maximumJavaVersion : defaultJavaVersion
+}
+
+def obtainSpringBootBomVersion() {
+    springBoot3Modules.contains(project.name) ? maximumSpringBootBomVersion : defaultSpringBootBomVersion
+}
+
+def obtainSpringCloudBomVersion() {
+    springBoot3Modules.contains(project.name) ? maximumSpringCloudBomVersion : defaultSpringCloudBomVersion
+}
+
+dependencyManagement {
+    resolutionStrategy {
+        cacheChangingModulesFor 0, "seconds"
+    }
+    applyMavenExclusions = false
+    generatedPomCustomization {
+        enabled = false
+    }
+    imports {
+        mavenBom "org.springframework.boot:spring-boot-dependencies:${obtainSpringBootBomVersion()}"
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${obtainSpringCloudBomVersion()}"
+    }
+    dependencies {
+        dependency "org.hibernate:hibernate-validator:8.0.0.Final"
+        dependency("io.github.hylexus.oaks:oaks-common-utils:1.0.7") {
+            exclude "org.projectlombok:lombok"
+        }
+        dependency "com.github.sarveswaran-m:util.concurrent.blockingMap:0.91"
+        dependency "com.google.guava:guava:31.1-jre"
+        dependency "com.google.code.findbugs:jsr305:3.0.2"
+        dependency "com.google.code.findbugs:annotations:3.0.1"
+        dependency "javax.annotation:javax.annotation-api:1.3.2"
+        dependency "org.apache.commons:commons-collections4:4.4"
+        dependency "org.bouncycastle:bcprov-jdk18on:1.78.1"
+    }
+}
+
+apply plugin: 'java-library'
+
+java {
+    sourceCompatibility = obtainJavaVersion()
+    targetCompatibility = obtainJavaVersion()
+}
 
 tasks.withType(JavaCompile) {
     options.encoding = "${defaultCharset}"
@@ -11,8 +52,20 @@ tasks.withType(JavaCompile) {
 
 repositories {
     mavenLocal()
-    maven {
-        url 'http://maven.aliyun.com/nexus/content/groups/public/'
+    [
+            'https://maven.aliyun.com/repository/central',
+            'https://maven.aliyun.com/repository/public',
+            'https://maven.aliyun.com/repository/google',
+            'https://maven.aliyun.com/repository/spring',
+            'https://maven.aliyun.com/repository/spring-plugin',
+            'https://maven.aliyun.com/repository/gradle-plugin',
+            'https://maven.aliyun.com/repository/grails-core',
+            'https://maven.aliyun.com/repository/apache-snapshots',
+            "https://plugins.gradle.org/m2/",
+            "https://repo.spring.io/release",
+            "https://repo.spring.io/snapshot",
+    ].each { repoUrl ->
+        maven { url repoUrl }
     }
     mavenCentral()
 }
@@ -26,23 +79,9 @@ dependencies {
     testCompileOnly 'org.projectlombok:lombok'
 }
 
-apply plugin: "io.spring.dependency-management"
-dependencyManagement {
-    resolutionStrategy {
-        cacheChangingModulesFor 0, "seconds"
-    }
-    applyMavenExclusions = false
-    generatedPomCustomization {
-        enabled = false
-    }
-    imports {
-        mavenBom "org.springframework.boot:spring-boot-dependencies:2.1.7.RELEASE"
-    }
-}
-
 compileJava {
-    sourceCompatibility = "${defaultJavaVersion}"
-    targetCompatibility = "${defaultJavaVersion}"
+    sourceCompatibility = obtainJavaVersion()
+    targetCompatibility = obtainJavaVersion()
     options.encoding = "${defaultCharset}"
 }
 
@@ -60,7 +99,7 @@ javadoc {
 
     options {
         version true
-        links "http://docs.oracle.com/javase/8/docs/api"
+        links "https://docs.oracle.com/en/java/javase/11/docs/api"
     }
     // Suppress warnings due to cross-module @see and @link references.
     // Note that global 'api' task does display all warnings.
@@ -70,16 +109,18 @@ javadoc {
 
 apply plugin: "checkstyle"
 checkstyle {
-    toolVersion = "8.23"
-    configDir = project(":build-script").file("checkstyle/")
+    // jdk8版本
+    //toolVersion = "8.29"
+    // jdk11版本
+    toolVersion = "10.9.1"
+    getConfigDirectory().set(rootProject.file("build-script/checkstyle/"))
 }
 
 apply plugin: 'idea'
-
 idea {
     module {
         inheritOutputDirs = false
-        outputDir = compileJava.destinationDir
-        testOutputDir = compileTestJava.destinationDir
+        outputDir = compileJava.destinationDirectory.getAsFile().get()
+        testOutputDir = compileTestJava.destinationDirectory.getAsFile().get()
     }
 }

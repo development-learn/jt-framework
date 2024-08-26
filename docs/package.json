@@ -3,7 +3,10 @@
   "version": "1.0.0",
   "private": true,
   "keywords": [
-    "808协议"
+    "808协议",
+    "jt-framework",
+    "JT/T808",
+    "部标协议"
   ],
   "homepage": "https://github.com/hylexus/jt-framework",
   "bugs": {
@@ -16,11 +19,21 @@
   "license": "",
   "author": "hylexus",
   "devDependencies": {
-    "vuepress": "^1.1.0"
+    "@vuepress/bundler-vite": "2.0.0-rc.9",
+    "vue": "^3.4.21",
+    "vuepress": "2.0.0-rc.9",
+    "vuepress-plugin-search-pro": "2.0.0-rc.32",
+    "vuepress-theme-hope": "2.0.0-rc.32",
+    "vuepress-shared": "2.0.0-rc.32"
   },
-  "dependencies": {},
   "scripts": {
-    "docs:dev": "vuepress dev pages --no-cache",
-    "docs:build": "vuepress build pages"
+    "docs:dev": "vuepress-vite dev src",
+    "docs:clean-dev": "vuepress-vite dev src --clean-cache",
+    "docs:build": "vuepress-vite build src",
+    "docs:update-package": "pnpm dlx vp-update"
+  },
+  "engines": {
+    "pnpm": ">= 8.6.6",
+    "node": ">= 20.3.1"
   }
 }
